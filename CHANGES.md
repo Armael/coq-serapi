@@ -1,12 +1,12 @@
 ## Version 0.7.0:
 
  * [general] support Coq 8.10,
- * [serapi] `Goals` query return type has been modified due to
-             upstream changes. (@ejgallego)
- * [serlib]  Complete (hopefully) serialization for ssreflect ASTs.
-             (#73 @ejgallego)
+ * [serapi] `Goals` query return type has been modified due to upstream changes. (@ejgallego)
+ * [serlib]  Complete (hopefully) serialization for ssreflect ASTs (#73 @ejgallego)
  * [general] Drop support for OCaml < 4.07 (#140 @ejgallego)
  * [serlib ] Partial Yojson support (@ejgallego)
+ * [sercomp] Support for output of kernel traces `--mode=trace` (@ejgallego @palmskog)
+ * [serload] Support for loading of kernel traces (@ejgallego @palmskog)
 
 ## Version 0.6.1:
 
