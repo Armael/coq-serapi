@@ -97,9 +97,7 @@ let input_doc ~pp ~in_file ~in_chan ~doc ~sid =
         let lex = CLexer.Lexer.tok_func sstr in
         let toks = stream_tok 0 [] lex in
         CLexer.set_lexer_state st;
-        let pptok = fun tok -> asprintf "@[%a@]@\n%!" pp Serlib.(Ser_tok.sexp_of_t tok) in
-        let tok_pp = Pp.pr_sequence (fun {CAst.v = tok;_} -> Pp.str (pptok tok)) toks in
-        printf "@[%a@]@\n%!" Pp.pp_with tok_pp;
+        printf "@[%a@]@\n%!" pp (Sexplib.Conv.sexp_of_list Serlib.(Ser_cAst.sexp_of_t Ser_tok.sexp_of_t) toks);
         let doc, n_st, tip = Stm.add ~doc ~ontop:sid false ast in
         if tip <> `NewTip then CErrors.user_err ?loc:ast.loc Pp.(str "fatal, got no `NewTip`");
         stt := doc, n_st
