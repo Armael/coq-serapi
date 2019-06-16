@@ -15,6 +15,14 @@
 (* Status: Very Experimental                                            *)
 (************************************************************************)
 
+let load_file f =
+  let ic = open_in f in
+  let n = in_channel_length ic in
+  let s = Bytes.create n in
+  really_input ic s 0 n;
+  close_in ic;
+  (s)
+
 let fatal_exn exn info =
   let loc = Loc.get_loc info in
   let msg = Pp.(pr_opt_no_spc Topfmt.pr_loc loc ++ fnl ()
@@ -84,6 +92,7 @@ let input_doc ~pp ~in_file ~in_chan ~doc ~sid =
   let stt = ref (doc, sid) in
   let in_strm = Stream.of_channel in_chan in
   let in_pa   = Pcoq.Parsable.make ~loc:(Loc.initial (InFile in_file)) in_strm in
+  let in_bytes = load_file in_file in
   let st = CLexer.get_lexer_state () in
   try while true do
       let doc, sid = !stt in
@@ -91,8 +100,24 @@ let input_doc ~pp ~in_file ~in_chan ~doc ~sid =
         match Stm.parse_sentence ~doc ~entry:Pvernac.main_entry sid in_pa with
         | Some ast -> ast
         | None -> raise End_of_input in
-      let istr = asprintf "@[%a@]@\n%!" Pp.pp_with Ppvernac.(pr_vernac ast.v) in
+      let offset_begin, offset_end =
+	match ast.loc with
+	| Some lc -> lc.bp, lc.ep
+	| None -> raise End_of_input in
+      let istr =
+	Bytes.sub_string in_bytes offset_begin (offset_end - offset_begin)
+      in
       let sstr = Stream.of_string istr in
+      (*begin
+	match ast.loc with
+	| Some lc ->
+	   Printf.printf "start: %d (line %d); end: %d (line %d)\n" lc.bp lc.line_nb lc.ep lc.line_nb_last;
+	  let s = Bytes.sub_string in_bytes lc.bp (lc.ep - lc.bp) in
+	  Printf.printf "%s\n" s
+	| None -> ()
+	end;*)
+      (*let istr = asprintf "@[%a@]@\n%!" Pp.pp_with Ppvernac.(pr_vernac ast.v) in
+	let sstr = Stream.of_string istr in*)
       try
         let lex = CLexer.Lexer.tok_func sstr in
         let sen = Sertop_ser.Sentence (stream_tok 0 [] lex) in
