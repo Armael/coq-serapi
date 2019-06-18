@@ -27,7 +27,7 @@ let fatal_exn exn info =
                 ++ CErrors.iprint (exn, info)) in
   fatal_error msg
 
-let driver in_file coq_path =
+let driver in_file coq_path ml_path load_path rload_path =
   let open Sertop_init in
 
   (* coq initialization *)
@@ -41,7 +41,7 @@ let driver in_file coq_path =
 
   (* We need to set the load path first to properly compute the lib
      name below *)
-  let iload_path = Serapi_paths.coq_loadpath_default ~implicit:true ~coq_path in
+  let iload_path = Serapi_paths.coq_loadpath_default ~implicit:true ~coq_path @ ml_path @ load_path @ rload_path in
   List.iter Mltop.add_coq_path iload_path;
 
   (* The kernel replay needed this because our trace was too weak. *)
@@ -65,11 +65,11 @@ let serload_man =
   [ `S "DESCRIPTION"
   ; `P "Experimental Coq Kernel Trace replay module."
   ; `S "USAGE"
-  ; `P "To load a kernel trace do:"
-  ; `Pre "serload foo.ktrace"
+  ; `P "To load a kernel trace `dir/foo.ktrace` with logical path `Bar`:"
+  ; `Pre "serload -Q dir,Bar foo.ktrace"
   ]
 
-let serload_doc = "sercomp Coq Compiler"
+let serload_doc = "serload Coq Loader"
 
 let main () =
   let input_file =
@@ -77,13 +77,13 @@ let main () =
     Arg.(required & pos 0 (some string) None & info [] ~docv:("FILE") ~doc)
   in
 
-  let sercomp_cmd =
+  let serload_cmd =
     let open Sertop_arg in
-    Term.(const driver $ input_file $ prelude),
+    Term.(const driver $ input_file $ prelude $ ml_include_path $ load_path $ rload_path),
     Term.info "serload" ~version:serload_version ~doc:serload_doc ~man:serload_man
   in
 
-  try match Term.eval ~catch:false sercomp_cmd with
+  try match Term.eval ~catch:false serload_cmd with
     | `Error _ -> exit 1
     | _        -> exit 0
   with exn ->
