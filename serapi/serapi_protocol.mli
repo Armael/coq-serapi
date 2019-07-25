@@ -252,6 +252,8 @@ type print_opt =
   (** Margin ({e default: 72}) *)
   }
 
+val gen_pp_obj : Environ.env -> Evd.evar_map -> coq_object -> Pp.t
+    
 (******************************************************************************)
 (* Parsing Sub-Protocol                                                       *)
 (******************************************************************************)
@@ -332,6 +334,12 @@ type query_cmd =
   | Complete of string
   (** Naïve but efficient prefix-based completion of identifiers *)
 
+module QueryUtil : sig
+
+  val info_of_id : Environ.env -> string -> coq_object list * coq_object list
+    
+end
+      
 (******************************************************************************)
 (* Control Sub-Protocol                                                       *)
 (******************************************************************************)
